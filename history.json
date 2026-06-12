@@ -1,0 +1,67 @@
+[
+    {
+        "email": "hello@gmail.com",
+        "status": null,
+        "time": "2026-06-09 16:45:23"
+    },
+    {
+        "email": "hello@gmail.com",
+        "status": "success",
+        "time": "2026-06-09 16:47:11"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "success",
+        "time": "2026-06-09 16:48:22"
+    },
+    {
+        "email": "adetunjiolwakayode@gmail.com",
+        "status": "success",
+        "time": "2026-06-09 16:51:43"
+    },
+    {
+        "email": "techprenure@gmail.com",
+        "status": "success",
+        "time": "2026-06-09 16:51:46"
+    },
+    {
+        "email": "yibiga8127@bncinema.com",
+        "status": "success",
+        "time": "2026-06-09 16:51:49"
+    },
+    {
+        "email": "pejobav778@hotkev.com",
+        "status": "failed",
+        "time": "2026-06-12 06:33:10"
+    },
+    {
+        "email": "pejobav778@hotkev.com",
+        "status": "failed",
+        "time": "2026-06-12 06:33:52"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "failed",
+        "time": "2026-06-12 06:34:35"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "failed",
+        "time": "2026-06-12 06:40:26"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "failed",
+        "time": "2026-06-12 06:43:16"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "failed",
+        "time": "2026-06-12 11:52:31"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "failed",
+        "time": "2026-06-12 11:56:01"
+    }
+]
