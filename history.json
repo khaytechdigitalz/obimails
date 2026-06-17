@@ -63,5 +63,15 @@
         "email": "adetunjioluwakayode@gmail.com",
         "status": "failed",
         "time": "2026-06-12 11:56:01"
+    },
+    {
+        "email": "",
+        "status": "failed",
+        "time": "2026-06-17 20:05:46"
+    },
+    {
+        "email": "",
+        "status": "failed",
+        "time": "2026-06-17 20:05:46"
     }
 ]
