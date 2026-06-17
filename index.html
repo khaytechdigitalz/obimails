@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ObiMails | Bulk SMTP Delivery Dashboard</title>
+    <title>ObiMails | Enterprise Bulk Delivery Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,14 +24,9 @@
 
             <nav class="space-y-1">
                 <button id="tab-queue"
-                    class="w-full flex items-center space-x-3 bg-slate-800 text-white px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+                    class="w-full flex items-center space-x-3 bg-slate-800 text-white px-4 py-3 rounded-lg font-medium transition cursor-default">
                     <i class="fa-solid fa-layer-group text-blue-400"></i>
-                    <span>Bulk Sender</span>
-                </button>
-                <button id="tab-analytics"
-                    class="w-full flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-lg font-medium transition cursor-pointer">
-                    <i class="fa-solid fa-chart-pie text-slate-400"></i>
-                    <span>Analytics</span>
+                    <span>Campaign Manager</span>
                 </button>
             </nav>
         </div>
@@ -40,7 +36,7 @@
                 A</div>
             <div>
                 <p class="text-sm font-semibold text-white">Admin Portal</p>
-                <p class="text-xs text-slate-500">Queue Active</p>
+                <p class="text-xs text-slate-500">System Ready</p>
             </div>
         </div>
     </aside>
@@ -65,16 +61,17 @@
         <div class="flex-1 p-8 max-w-5xl w-full mx-auto space-y-6">
 
             <div id="view-queue" class="space-y-6">
+
                 <div id="progressContainer"
                     class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h3 class="font-bold text-white text-lg">Processing Mail Batch Campaign</h3>
+                            <h3 class="font-bold text-white text-lg">Processing Mail Campaign Queue</h3>
                             <p class="text-xs text-slate-400" id="campaignStatus">Preparing packages...</p>
                         </div>
                         <div class="text-right">
                             <span class="text-2xl font-mono font-bold text-blue-400" id="countdownMetrics">0 / 0</span>
-                            <p class="text-xs text-slate-500">Sent vs Remaining</p>
+                            <p class="text-xs text-slate-500">Processed vs Total</p>
                         </div>
                     </div>
 
@@ -86,7 +83,8 @@
 
                     <div class="bg-slate-900 rounded-xl p-4 border border-slate-800 max-h-40 overflow-y-auto font-mono text-xs space-y-1.5 text-slate-300"
                         id="terminalLog">
-                        <div class="text-slate-500">// Terminal initialized. Awaiting pipeline triggers...</div>
+                        <div class="text-slate-500">// Engine initialized. Awaiting outbound campaign pipeline
+                            trigger...</div>
                     </div>
                 </div>
 
@@ -103,7 +101,7 @@
                         <div>
                             <label for="emails"
                                 class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Recipient
-                                Email Addresses (Separated with commas)</label>
+                                Email Addresses</label>
                             <div class="relative">
                                 <div class="absolute top-3.5 left-3.5 text-slate-500">
                                     <i class="fa-solid fa-users"></i>
@@ -125,22 +123,54 @@
                                 </div>
                                 <input type="text" id="subject" required
                                     class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                    placeholder="Enter marketing or system notification subject line">
+                                    placeholder="Enter system notification or campaign subject line">
                             </div>
                         </div>
 
                         <div>
                             <label
                                 class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Message
-                                Body (Rich HTML)</label>
+                                Body (Rich HTML Layout)</label>
                             <div
-                                class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition">
+                                class="bg-slate-900 border text-white border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition">
                                 <div id="editor-container" class="text-slate-200" style="height: 200px; border:none;">
                                 </div>
                             </div>
                         </div>
 
-                         
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="senderemail"
+                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                    Sender Reply Email
+                                </label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                        <i class="fa-solid fa-reply"></i>
+                                    </div>
+                                    <input type="email" id="senderemail" required
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="sender@yourdomain.com">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="sendername"
+                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                    Display Sender Name
+                                </label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <input type="text" id="sendername" required
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="e.g. Operations Team">
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="flex items-center justify-end space-x-4 pt-4 border-t border-slate-800">
                             <button type="button" id="clearBtn"
@@ -149,48 +179,11 @@
                             </button>
                             <button type="submit" id="submitBtn"
                                 class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
-                                <span id="btnText">Bomb Emails</span>
-                                <i id="btnIcon" class="fa-solid fa-bolt"></i>
+                                <span id="btnText">Dispatch Campaign</span>
+                                <i id="btnIcon" class="fa-solid fa-paper-plane"></i>
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <div id="view-analytics" class="hidden space-y-6">
-                <div class="bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-                    <div class="bg-slate-900/50 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
-                        <div class="flex items-center space-x-2 text-sm text-slate-400">
-                            <i class="fa-solid fa-chart-line text-indigo-500"></i>
-                            <span class="font-medium text-slate-300">SMTP Transmission Log Logs</span>
-                        </div>
-                        <button id="refreshHistory"
-                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                            <i class="fa-solid fa-rotate-right"></i> Refresh Data
-                        </button>
-                    </div>
-
-                    <div class="p-6">
-                        <div class="overflow-x-auto rounded-xl border border-slate-800">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr
-                                        class="bg-slate-900 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-800">
-                                        <th class="py-4 px-6">Recipient Email Address</th>
-                                        <th class="py-4 px-6">Delivery Status</th>
-                                        <th class="py-4 px-6">Execution Timestamp</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="historyTableBody"
-                                    class="divide-y divide-slate-800/60 text-sm text-slate-300">
-                                    <tr>
-                                        <td colspan="3" class="text-center py-8 text-slate-500 font-medium">Loading
-                                            history repository items...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -201,27 +194,15 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             fetch('https://api.ipify.org?format=json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Target your span ID and inject the IP address
-                    document.getElementById('myip').textContent = data.ip;
-                })
-                .catch(error => {
-                    console.error('Error fetching IP:', error);
-                    document.getElementById('myip').textContent = 'Unavailable';
-                });
+                .then(response => response.ok ? response.json() : Promise.reject())
+                .then(data => { document.getElementById('myip').textContent = data.ip; })
+                .catch(() => { document.getElementById('myip').textContent = 'Unavailable'; });
         });
-    </script>
-    <script>
-        // Initialize Quill WYSIWYG Editor
+
+        // Initialize Quill Rich-Text Editor Framework
         const quill = new Quill('#editor-container', {
             theme: 'snow',
-            placeholder: 'Draft your premium HTML email template here...',
+            placeholder: 'Draft your professional HTML structural email template content here...',
             modules: {
                 toolbar: [
                     [{ 'header': [1, 2, 3, false] }],
@@ -232,15 +213,7 @@
             }
         });
 
-        // UI DOM references
-        const viewQueue = document.getElementById('view-queue');
-        const viewAnalytics = document.getElementById('view-analytics');
-        const tabQueue = document.getElementById('tab-queue');
-        const tabAnalytics = document.getElementById('tab-analytics');
-        const pageTitle = document.getElementById('page-title');
-        const historyTableBody = document.getElementById('historyTableBody');
-        const refreshHistoryBtn = document.getElementById('refreshHistory');
-
+        // Interactive UI Element DOM Bindings
         const form = document.getElementById('smtpForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
@@ -253,89 +226,10 @@
         const progressBar = document.getElementById('progressBar');
         const terminalLog = document.getElementById('terminalLog');
 
-        // ================= SPA TAB SWITCHING CONTROLLER =================
-        tabQueue.addEventListener('click', () => {
-            // Update Active tab styling
-            tabQueue.className = "w-full flex items-center space-x-3 bg-slate-800 text-white px-4 py-3 rounded-lg font-medium transition cursor-pointer";
-            tabAnalytics.className = "w-full flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-lg font-medium transition cursor-pointer";
-            tabAnalytics.querySelector('i').className = "fa-solid fa-chart-pie text-slate-400";
+        // Helper async promise timeout function for rate-limiting execution blocks
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-            // Toggle Views
-            viewQueue.classList.remove('hidden');
-            viewAnalytics.classList.add('hidden');
-            pageTitle.innerText = "SMTP Mail Dispatcher";
-        });
-
-        tabAnalytics.addEventListener('click', () => {
-            // Update Active tab styling
-            tabAnalytics.className = "w-full flex items-center space-x-3 bg-slate-800 text-white px-4 py-3 rounded-lg font-medium transition cursor-pointer";
-            tabQueue.className = "w-full flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-lg font-medium transition cursor-pointer";
-            tabAnalytics.querySelector('i').className = "fa-solid fa-chart-pie text-indigo-400";
-
-            // Toggle Views
-            viewQueue.classList.add('hidden');
-            viewAnalytics.classList.remove('hidden');
-            pageTitle.innerText = "Analytics & Campaign Records";
-
-            // Load remote tracking log history mapping values
-            fetchHistoryLog();
-        });
-
-        refreshHistoryBtn.addEventListener('click', fetchHistoryLog);
-
-        // ================= ASYNC HISTORY DATA LOADER =================
-        async function fetchHistoryLog() {
-            historyTableBody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center py-8 text-slate-400">
-                        <i class="fa-solid fa-circle-notch animate-spin mr-2 text-indigo-500"></i> Synchronizing delivery records...
-                    </td>
-                </tr>`;
-
-            try {
-                const response = await fetch('#', { cache: 'no-store' });
-                if (!response.ok) throw new Error('Network logging error');
-
-                const data = await response.json();
-
-                if (data.length === 0) {
-                    historyTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-slate-500">No outbound transmissions discovered.</td></tr>`;
-                    return;
-                }
-
-                let rowsHtml = '';
-                data.forEach(log => {
-                    // Setup beautiful badge designs based on the response parameter metrics
-                    let statusBadge = '';
-                    if (log.status === 'success') {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20 flex items-center w-fit gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Success</span>`;
-                    } else if (log.status === null || log.status === 'pending') {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs font-semibold bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/20 flex items-center w-fit gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Null / Unverified</span>`;
-                    } else {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs font-semibold bg-rose-500/10 text-rose-400 rounded-full border border-rose-500/20 flex items-center w-fit gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>Failed</span>`;
-                    }
-
-                    rowsHtml += `
-                        <tr class="hover:bg-slate-900/40 transition">
-                            <td class="py-4 px-6 font-medium text-slate-200 font-mono text-xs">${log.email}</td>
-                            <td class="py-4 px-6">${statusBadge}</td>
-                            <td class="py-4 px-6 text-xs font-mono text-slate-400">${log.time}</td>
-                        </tr>`;
-                });
-
-                historyTableBody.innerHTML = rowsHtml;
-
-            } catch (error) {
-                historyTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="3" class="text-center py-8 text-rose-400">
-                            <i class="fa-solid fa-triangle-exclamation mr-2"></i> Failed to retrieve record manifest from encrypted history
-                        </td>
-                    </tr>`;
-            }
-        }
-
-        // ================= CORE SMTP PIPELINE DISPATCH LOGIC (UNCHANGED) =================
+        // ================= CAMPAIGN PIPELINE PROCESSING DISPATCH LOGIC =================
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -345,35 +239,37 @@
                 .filter(email => email.length > 5 && email.includes('@'));
 
             const subjectValue = document.getElementById('subject').value.trim();
+            const senderEmail = document.getElementById('senderemail').value.trim();
+            const senderName = document.getElementById('sendername').value.trim();
             const messageHtml = quill.getSemanticHTML();
 
             if (emailList.length === 0) {
-                alert('Please enter at least one valid email address.');
+                alert('Please provide at least one valid recipient email address.');
                 return;
             }
 
             if (quill.getText().trim().length === 0) {
-                alert('Please enter some text inside the editor.');
+                alert('Campaign execution halted: Message body cannot be empty.');
                 return;
             }
 
             progressContainer.classList.remove('hidden');
-            terminalLog.innerHTML = `<div class="text-blue-400">[SYSTEM] Starting mail engine queue for ${emailList.length} destinations...</div>`;
+            terminalLog.innerHTML = `<div class="text-blue-400">[SYSTEM] Initialization confirmed. Launching delivery engine for ${emailList.length} targets...</div>`;
             updateProgressBar(0, emailList.length);
-
             toggleFormState(true);
 
             let currentSentCount = 0;
             const totalCount = emailList.length;
 
-            for (const currentEmail of emailList) {
-                campaignStatus.innerText = `Dispatching package to: ${currentEmail}`;
-                appendTerminalLine(`[SENDING] Posting payload to single target: ${currentEmail}`, 'text-slate-400');
+            for (let i = 0; i < totalCount; i++) {
+                const currentEmail = emailList[i];
+                campaignStatus.innerText = `Dispatching packet to: ${currentEmail}`;
+                appendTerminalLine(`[PROCESSING] Submitting payload mapping structure to: ${currentEmail}`, 'text-slate-400');
 
                 const payload = {
                     receiver_email: currentEmail,
-                    sender_email: 'help@govt.fundamints.online',
-                    sender_name: 'fundamint',
+                    sender_email: senderEmail,
+                    sender_name: senderName,
                     subject: subjectValue,
                     message: messageHtml
                 };
@@ -381,30 +277,42 @@
                 try {
                     const response = await fetch('https://govt.fundamints.online/ipn/cron/send/mail', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
                         body: JSON.stringify(payload)
                     });
 
                     const data = await response.json();
 
-                    if (response.ok && data.success) {
-                        appendTerminalLine(`[SUCCESS 200] Delivery completed for: ${currentEmail}`, 'text-emerald-400');
+                    if (data.status === true) {
+                        appendTerminalLine(`[SUCCESS 200] Transmission successfully completed for: ${currentEmail}`, 'text-emerald-400');
                     } else {
-                        appendTerminalLine(`[REJECTED] Server failed execution for ${currentEmail} -> Reason: ${data.message || 'Unknown error'}`, 'text-rose-400');
+                        appendTerminalLine(`[REJECTED] Processing exception reported for ${currentEmail} -> Host reason: ${data.message || 'Unhandled exception context'}`, 'text-rose-400');
                     }
 
                 } catch (error) {
-                    appendTerminalLine(`[CONNECTION FAILURE] Endpoint communication crashed for ${currentEmail}`, 'text-amber-500');
+                    appendTerminalLine(`[NETWORK FAULT] Unable to establish socket stream for destination: ${currentEmail}`, 'text-amber-500');
                 }
 
                 currentSentCount++;
                 updateProgressBar(currentSentCount, totalCount);
 
-                await new Promise(resolve => setTimeout(resolve, 250));
+                // Rate limiting logic: Check if there are remaining addresses left to process in the current iteration array
+                if (i < totalCount - 1) {
+                    appendTerminalLine(`[ANTI-SPAM POLICIES] Rate limit threshold triggered. Pausing pipeline for 10 seconds...`, 'text-indigo-400/80 font-semibold');
+
+                    // Display visual loop countdown logs down the internal console grid box wrapper framework
+                    for (let countdown = 10; countdown > 0; countdown--) {
+                        campaignStatus.innerText = `Rate-limiting: Next transmission cycle initializes in ${countdown}s...`;
+                        await sleep(1000);
+                    }
+                }
             }
 
-            campaignStatus.innerText = "Campaign process completed successfully.";
-            appendTerminalLine(`[SYSTEM] Queue finished processing. Total runs executed: ${totalCount}`, 'text-indigo-400');
+            campaignStatus.innerText = "Target queue execution campaign finalized.";
+            appendTerminalLine(`[SYSTEM] Dispatch process finished safely. Total nodes executed: ${totalCount}`, 'text-indigo-400');
             toggleFormState(false);
         });
 
@@ -413,12 +321,12 @@
             clearBtn.disabled = isProcessing;
             if (isProcessing) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                btnText.innerText = "Processing Queue...";
+                btnText.innerText = "Queue Active...";
                 btnIcon.className = "fa-solid fa-circle-notch animate-spin";
             } else {
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btnText.innerText = "Execute Blast";
-                btnIcon.className = "fa-solid fa-bolt";
+                btnText.innerText = "Dispatch Campaign";
+                btnIcon.className = "fa-solid fa-paper-plane";
             }
         }
 
