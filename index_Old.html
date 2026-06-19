@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ObiMails | Enterprise Bulk Delivery Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex">
+
+    <aside class="w-64 bg-slate-950 border-r border-slate-800 hidden md:flex flex-col justify-between p-6">
+        <div class="space-y-8">
+            <div class="flex items-center space-x-3 px-2">
+                <div class="bg-blue-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-paper-plane text-xl"></i>
+                </div>
+                <span class="text-xl font-bold tracking-wider text-white">ObiMails</span>
+            </div>
+
+            <nav class="space-y-1">
+                <button id="tab-queue"
+                    class="w-full flex items-center space-x-3 bg-slate-800 text-white px-4 py-3 rounded-lg font-medium transition cursor-default">
+                    <i class="fa-solid fa-layer-group text-blue-400"></i>
+                    <span>Campaign Manager</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="border-t border-slate-800 pt-4 flex items-center space-x-3 px-2">
+            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white">
+                A</div>
+            <div>
+                <p class="text-sm font-semibold text-white">Admin Portal</p>
+                <p class="text-xs text-slate-500">System Ready</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-h-screen">
+
+        <header
+            class="bg-slate-950/50 backdrop-blur border-b border-slate-800 h-16 flex items-center justify-between px-8">
+            <div class="flex items-center space-x-4">
+                <h1 id="page-title" class="text-lg font-semibold text-white">SMTP Mail Dispatcher</h1>
+                <span
+                    class="px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    SMTP Connected
+                </span>
+            </div>
+            <div class="text-sm text-slate-400">
+                Server IP: <span class="text-slate-200 font-mono" id="myip"></span>
+            </div>
+        </header>
+
+        <div class="flex-1 p-8 max-w-5xl w-full mx-auto space-y-6">
+
+            <div id="view-queue" class="space-y-6">
+
+                <div id="progressContainer"
+                    class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-white text-lg">Processing Mail Campaign Queue</h3>
+                            <p class="text-xs text-slate-400" id="campaignStatus">Preparing packages...</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-2xl font-mono font-bold text-blue-400" id="countdownMetrics">0 / 0</span>
+                            <p class="text-xs text-slate-500">Processed vs Total</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+                        <div id="progressBar"
+                            class="bg-gradient-to-r from-blue-600 to-indigo-500 h-full w-0 transition-all duration-300 rounded-full">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-xl p-4 border border-slate-800 max-h-40 overflow-y-auto font-mono text-xs space-y-1.5 text-slate-300"
+                        id="terminalLog">
+                        <div class="text-slate-500">// Engine initialized. Awaiting outbound campaign pipeline
+                            trigger...</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="bg-slate-900/50 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
+                        <div class="flex items-center space-x-2 text-sm text-slate-400">
+                            <i class="fa-solid fa-envelope text-blue-500"></i>
+                            <span class="font-medium text-slate-300">New Outbound Message</span>
+                        </div>
+                        <span class="text-xs font-mono text-slate-500">Comma-separated target emails supported</span>
+                    </div>
+
+                    <form id="smtpForm" class="p-6 space-y-6">
+                        <div>
+                            <label for="emails"
+                                class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Recipient
+                                Email Addresses</label>
+                            <div class="relative">
+                                <div class="absolute top-3.5 left-3.5 text-slate-500">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <textarea id="emails" required rows="2"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                                    placeholder="user1@domain.com, user2@domain.com, user3@another.com"></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="subject"
+                                class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email
+                                Subject</label>
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                    <i class="fa-solid fa-heading"></i>
+                                </div>
+                                <input type="text" id="subject" required
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    placeholder="Enter system notification or campaign subject line">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Message
+                                Body (Rich HTML Layout)</label>
+                            <div
+                                class="bg-slate-900 border text-white border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition">
+                                <div id="editor-container" class="text-slate-200" style="height: 200px; border:none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="senderemail"
+                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                    Sender Reply Email
+                                </label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                        <i class="fa-solid fa-reply"></i>
+                                    </div>
+                                    <input type="email" id="senderemail" required
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="sender@yourdomain.com">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="sendername"
+                                    class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                    Display Sender Name
+                                </label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <input type="text" id="sendername" required
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="e.g. Operations Team">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end space-x-4 pt-4 border-t border-slate-800">
+                            <button type="button" id="clearBtn"
+                                class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-medium rounded-xl transition flex items-center gap-2">
+                                <i class="fa-solid fa-trash-can"></i> Clear
+                            </button>
+                            <button type="submit" id="submitBtn"
+                                class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
+                                <span id="btnText">Bomb Email</span>
+                                <i id="btnIcon" class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.ok ? response.json() : Promise.reject())
+                .then(data => { document.getElementById('myip').textContent = data.ip; })
+                .catch(() => { document.getElementById('myip').textContent = 'Unavailable'; });
+        });
+
+        // Initialize Quill Rich-Text Editor Framework
+        const quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Draft your professional HTML structural email template content here...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
+
+        // Interactive UI Element DOM Bindings
+        const form = document.getElementById('smtpForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnIcon = document.getElementById('btnIcon');
+        const clearBtn = document.getElementById('clearBtn');
+
+        const progressContainer = document.getElementById('progressContainer');
+        const campaignStatus = document.getElementById('campaignStatus');
+        const countdownMetrics = document.getElementById('countdownMetrics');
+        const progressBar = document.getElementById('progressBar');
+        const terminalLog = document.getElementById('terminalLog');
+
+        // Helper async promise timeout function for rate-limiting execution blocks
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // ================= CAMPAIGN PIPELINE PROCESSING DISPATCH LOGIC =================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const rawEmails = document.getElementById('emails').value;
+            const emailList = rawEmails.split(',')
+                .map(email => email.trim())
+                .filter(email => email.length > 5 && email.includes('@'));
+
+            const subjectValue = document.getElementById('subject').value.trim();
+            const senderEmail = document.getElementById('senderemail').value.trim();
+            const senderName = document.getElementById('sendername').value.trim();
+            const messageHtml = quill.getSemanticHTML();
+
+            if (emailList.length === 0) {
+                alert('Please provide at least one valid recipient email address.');
+                return;
+            }
+
+            if (quill.getText().trim().length === 0) {
+                alert('Campaign execution halted: Message body cannot be empty.');
+                return;
+            }
+
+            progressContainer.classList.remove('hidden');
+            terminalLog.innerHTML = `<div class="text-blue-400">[SYSTEM] Initialization confirmed. Launching delivery engine for ${emailList.length} targets...</div>`;
+            updateProgressBar(0, emailList.length);
+            toggleFormState(true);
+
+            let currentSentCount = 0;
+            const totalCount = emailList.length;
+
+            for (let i = 0; i < totalCount; i++) {
+                const currentEmail = emailList[i];
+                campaignStatus.innerText = `Dispatching packet to: ${currentEmail}`;
+                appendTerminalLine(`[PROCESSING] Submitting payload mapping structure to: ${currentEmail}`, 'text-slate-400');
+
+                const payload = {
+                    receiver_email: currentEmail,
+                    sender_email: senderEmail,
+                    sender_name: senderName,
+                    subject: subjectValue,
+                    message: messageHtml
+                };
+
+                try {
+                    const response = await fetch('https://govt.fundamints.online/ipn/cron/send/mail', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === true) {
+                        appendTerminalLine(`[SUCCESS 200] Transmission successfully completed for: ${currentEmail}`, 'text-emerald-400');
+                    } else {
+                        appendTerminalLine(`[REJECTED] Processing exception reported for ${currentEmail} -> Host reason: ${data.message || 'Unhandled exception context'}`, 'text-rose-400');
+                    }
+
+                } catch (error) {
+                    appendTerminalLine(`[NETWORK FAULT] Unable to establish socket stream for destination: ${currentEmail}`, 'text-amber-500');
+                }
+
+                currentSentCount++;
+                updateProgressBar(currentSentCount, totalCount);
+
+                // Rate limiting logic: Check if there are remaining addresses left to process in the current iteration array
+                if (i < totalCount - 1) {
+                    appendTerminalLine(`[ANTI-SPAM POLICIES] Rate limit threshold triggered. Pausing pipeline for 10 seconds...`, 'text-indigo-400/80 font-semibold');
+
+                    // Display visual loop countdown logs down the internal console grid box wrapper framework
+                    for (let countdown = 10; countdown > 0; countdown--) {
+                        campaignStatus.innerText = `Rate-limiting: Next transmission cycle initializes in ${countdown}s...`;
+                        await sleep(300);
+                    }
+                }
+            }
+
+            campaignStatus.innerText = "Target queue execution campaign finalized.";
+            appendTerminalLine(`[SYSTEM] Dispatch process finished safely. Total nodes executed: ${totalCount}`, 'text-indigo-400');
+            toggleFormState(false);
+        });
+
+        function toggleFormState(isProcessing) {
+            submitBtn.disabled = isProcessing;
+            clearBtn.disabled = isProcessing;
+            if (isProcessing) {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                btnText.innerText = "Queue Active...";
+                btnIcon.className = "fa-solid fa-circle-notch animate-spin";
+            } else {
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnText.innerText = "Dispatch Campaign";
+                btnIcon.className = "fa-solid fa-paper-plane";
+            }
+        }
+
+        function updateProgressBar(sent, total) {
+            const percentage = (sent / total) * 100;
+            progressBar.style.width = `${percentage}%`;
+            countdownMetrics.innerText = `${sent} / ${total}`;
+        }
+
+        function appendTerminalLine(text, twColorClass) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logLine = document.createElement('div');
+            logLine.className = twColorClass;
+            logLine.innerHTML = `<span class="text-slate-600">[${timestamp}]</span> ${text}`;
+            terminalLog.appendChild(logLine);
+            terminalLog.scrollTop = terminalLog.scrollHeight;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            form.reset();
+            quill.setContents([]);
+            progressContainer.classList.add('hidden');
+        });
+    </script>
+
+    <style>
+        .ql-toolbar.ql-snow {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        .ql-container.ql-snow {
+            border-color: #334155 !important;
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            background-color: #0f172a;
+            font-size: 1rem;
+        }
+
+        .ql-snow .ql-stroke {
+            stroke: #94a3b8 !important;
+        }
+
+        .ql-snow .ql-fill {
+            fill: #94a3b8 !important;
+        }
+
+        .ql-snow .ql-picker {
+            color: #94a3b8 !important;
+        }
+
+        .ql-snow .ql-picker-options {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+        }
+    </style>
+</body>
+
+</html>

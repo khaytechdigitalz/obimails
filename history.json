@@ -73,5 +73,25 @@
         "email": "",
         "status": "failed",
         "time": "2026-06-17 20:05:46"
+    },
+    {
+        "email": "",
+        "status": "failed",
+        "time": "2026-06-17 21:11:05"
+    },
+    {
+        "email": "",
+        "status": "failed",
+        "time": "2026-06-17 21:11:05"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "success",
+        "time": "2026-06-17 21:15:10"
+    },
+    {
+        "email": "adetunjioluwakayode@gmail.com",
+        "status": "success",
+        "time": "2026-06-17 21:15:42"
     }
 ]
